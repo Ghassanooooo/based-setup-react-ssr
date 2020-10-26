@@ -12,7 +12,7 @@ import serverRenderer from './middleware/serverRenderer';
 import addStore from './middleware/addStore';
 import webhookVerification from './middleware/webhookVerification';
 import { i18nextXhr, refreshTranslations } from './middleware/i18n';
-
+const compression = require('compression');
 require('dotenv').config();
 
 const app = express();
@@ -25,7 +25,7 @@ app.use(paths.publicPath, express.static(path.join(paths.clientBuild, paths.publ
 // }
 
 app.use(cors());
-
+app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 

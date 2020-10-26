@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 type Props = {
     children: any;
@@ -15,7 +15,7 @@ const HTML = ({
     state = '{}',
     helmetContext: { helmet },
 }: Props) => (
-    <html lang="">
+    <html lang="en">
         <head>
             <meta charSet="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1" />

@@ -1,11 +1,9 @@
 import * as React from 'react';
-import { hydrate } from 'react-dom';
 import { Provider } from 'react-redux';
-import { Router } from 'react-router-dom';
+
 import { HelmetProvider } from 'react-helmet-async';
 
 import { configureStore } from '../shared/store';
-import App from '../shared/App';
 import IntlProvider from '../shared/i18n/IntlProvider';
 import createHistory from '../shared/store/history';
 
@@ -18,19 +16,25 @@ const store =
     configureStore({
         initialState: window.__PRELOADED_STATE__,
     });
+import('react-dom').then(({ hydrate }) => {
+    hydrate(
+        <Provider store={store}>
+            {import('react-router-dom').then(({ Router }) => (
+                <Router history={history}>
+                    <IntlProvider>
+                        <HelmetProvider>
+                            {import('../shared/App').then(({ default: App }) => (
+                                <App />
+                            ))}
+                        </HelmetProvider>
+                    </IntlProvider>
+                </Router>
+            ))}
+        </Provider>,
 
-hydrate(
-    <Provider store={store}>
-        <Router history={history}>
-            <IntlProvider>
-                <HelmetProvider>
-                    <App />
-                </HelmetProvider>
-            </IntlProvider>
-        </Router>
-    </Provider>,
-    document.getElementById('app')
-);
+        document.getElementById('app')
+    );
+});
 
 if (process.env.NODE_ENV === 'development') {
     if (module.hot) {

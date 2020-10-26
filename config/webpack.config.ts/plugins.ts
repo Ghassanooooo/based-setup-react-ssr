@@ -7,10 +7,14 @@ import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import { TypedCssModulesPlugin } from 'typed-css-modules-webpack-plugin';
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
+
 import paths from '../paths';
 import { clientOnly } from '../../scripts/utils';
 
 import envBuilder from '../env';
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+
+const CompressionPlugin = require('compression-webpack-plugin');
 
 const env = envBuilder();
 
@@ -19,6 +23,24 @@ const isProfilerEnabled = () => process.argv.includes('--profile');
 const isDev = () => process.env.NODE_ENV === 'development';
 
 export const shared = [
+    new CompressionPlugin({
+        filename: '[path][base].gz',
+        algorithm: 'gzip',
+        test: /\.js$|\.css$|\.html$/,
+        threshold: 10240,
+        minRatio: 0.8,
+    }),
+    new CompressionPlugin({
+        filename: '[path][base].br',
+        algorithm: 'brotliCompress',
+        test: /\.(js|css|html|svg)$/,
+        compressionOptions: {
+            level: 11,
+        },
+        threshold: 10240,
+        minRatio: 0.8,
+    }),
+    new BundleAnalyzerPlugin(),
     new MiniCssExtractPlugin({
         filename: isDev() ? '[name].css' : '[name].[contenthash].css',
         chunkFilename: isDev() ? '[id].css' : '[id].[contenthash].css',
@@ -35,6 +57,13 @@ export const client = [
             template: paths.appHtml,
         }),
     // new webpack.ProgressPlugin(), // make this optional e.g. via `--progress` flag
+
+    new webpack.DefinePlugin({
+        'process.env': {
+            NODE_ENV: JSON.stringify('production'),
+        },
+    }),
+
     new webpack.DefinePlugin(env.stringified),
     new webpack.DefinePlugin({
         __SERVER__: 'false',
@@ -46,6 +75,7 @@ export const client = [
     new TypedCssModulesPlugin({
         globPattern: 'src/**/*.css',
     }),
+    isDev && new webpack.HotModuleReplacementPlugin(),
     isDev() &&
         new ReactRefreshWebpackPlugin({
             overlay: {
